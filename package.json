@@ -1,0 +1,16 @@
+{
+  "name": "nodecpp",
+  "version": "0.0.0",
+  "description": "node cpp",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-gyp configure build",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "node",
+    "cpp"
+  ],
+  "author": "bhaumik.pandya21@gmail.com",
+  "license": "MIT"
+}
