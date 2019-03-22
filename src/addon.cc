@@ -18,6 +18,16 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
+double* cast1dArray(Local<Array> input) {
+  unsigned int len = input->Length();
+  double* output = 0;
+  output = new double[len];
+  for (unsigned int i = 0; i < len; i++) {
+    output[i] = input->Get(i)->NumberValue();
+  }
+  return output;
+}
+
 // cast cpp array from js array (2d arrays)
 double** cast2dArray(Local<Array> input) {
   unsigned int num = input->Length();
@@ -43,6 +53,30 @@ double** cast2dArray(Local<Array> input) {
   return output;
 }
 
+Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
+  Local<Array> arr2 = Array::New(isolate);
+  unsigned int len = arr->Length();
+  for (unsigned int i = 0; i < len; i++) {
+    arr2->Set(i, arr->Get(i));
+  }
+  double* arr3 = cast1dArray(arr2);
+  std::vector<double> v(arr3, arr3 + len);
+
+  std::sort(v.begin(), v.end());
+  auto last = std::unique(v.begin(), v.end());
+  v.erase(last, v.end()); 
+
+  Local<Array> arr4 = Array::New(isolate);
+  for (unsigned int i = 0; i < v.size(); i++) {
+    printf("v[i]: %f\n", v[i]);
+    // v8::Local<v8::Value> jsElement = New<v8::Value>(v[i]);
+    Local<Number> retval = v8::Number::New(isolate, v[i]);
+    arr4->Set(i, retval);
+  }
+
+  return arr4;
+}
+
 Local<Array> getItems(Local<Array> input, Isolate* isolate) {
   Local<Array> arr = Array::New(isolate);
   unsigned int index = 0;
@@ -54,11 +88,11 @@ Local<Array> getItems(Local<Array> input, Isolate* isolate) {
     for (unsigned int j = 0; j < nItemsInThisTran; j++) {
       // printf("j is: %d\n", j);
       arr->Set(index, thisArray->Get(j));
-      printf("arr->Get(%d): %f\n", index, arr->Get(index)->NumberValue());
+      // printf("arr->Get(%d): %f\n", index, arr->Get(index)->NumberValue());
       index++;
     }
   }
-  return arr;
+  return getUniqueItems(arr, isolate);
 }
 
 bool isNaN(double x) {
