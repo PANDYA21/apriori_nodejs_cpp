@@ -53,6 +53,22 @@ double** cast2dArray(Local<Array> input) {
   return output;
 }
 
+std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs) {
+  std::vector<unsigned int> ans;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    unsigned int thisfreq = 0;
+    for (unsigned int j = 0; j < flattrans.size(); j++) {
+      if (uniqs[i] == flattrans[j]) {
+        thisfreq++;
+      }
+    }
+    printf("uniqs[%d]: %d, thisfreq: %d\n",i, uniqs[i], thisfreq);
+    ans.push_back(thisfreq);
+  }
+  return ans;
+}
+
+
 Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   Local<Array> arr2 = Array::New(isolate);
   unsigned int len = arr->Length();
@@ -63,13 +79,14 @@ Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   std::vector<double> v(arr3, arr3 + len);
 
   std::sort(v.begin(), v.end());
+  std::vector<double> v2 = v;
   auto last = std::unique(v.begin(), v.end());
-  v.erase(last, v.end()); 
+  v.erase(last, v.end());
+  std::vector<unsigned int> freqs = getFreq(v2, v);
 
   Local<Array> arr4 = Array::New(isolate);
   for (unsigned int i = 0; i < v.size(); i++) {
     printf("v[i]: %f\n", v[i]);
-    // v8::Local<v8::Value> jsElement = New<v8::Value>(v[i]);
     Local<Number> retval = v8::Number::New(isolate, v[i]);
     arr4->Set(i, retval);
   }
@@ -95,9 +112,6 @@ Local<Array> getItems(Local<Array> input, Isolate* isolate) {
   return getUniqueItems(arr, isolate);
 }
 
-bool isNaN(double x) {
-  return x != x;
-}
 
 // This is the implementation of the "mine" method
 // Input arguments are passed using the
@@ -115,19 +129,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   }
 
   Local<Array> input = Local<Array>::Cast(args[0]);
-  // double** output = cast2dArray(input);
-  // unsigned int nTrans = input->Length();
   Local<Array> items = getItems(input, isolate);
-
-  // for (unsigned int i = 0; i < nTrans; ++i) {
-  //   Local<Array> thisArray = Local<Array>::Cast(input->Get(i));
-  //   unsigned int nItemsInThisTran = thisArray->Length();
-  //   for (unsigned int j = 0; j < nItemsInThisTran; ++j) {
-  //     // printf("%f\n", output[i][j]);
-  //     printf("%f\n", thisArray->Get(j)->NumberValue());
-  //   }
-  //   printf("\n");
-  // }
 
   // Set the return value (using the passed in
   // FunctionCallbackInfo<Value>&)
