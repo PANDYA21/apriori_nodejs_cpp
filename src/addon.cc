@@ -62,7 +62,7 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
         thisfreq++;
       }
     }
-    printf("uniqs[%d]: %f, thisfreq: %d\n",i, uniqs[i], thisfreq);
+    // printf("uniqs[%d]: %f, thisfreq: %d\n",i, uniqs[i], thisfreq);
     ans.push_back(thisfreq);
   }
   return ans;
@@ -146,14 +146,14 @@ std::vector<double> getAssociations(Local<Array> trans, double item) {
 
     std::vector<double> thisVect = js1dToVect(thisTran);
     if (containsVector(thisVect, item)) {
-      printf("\n%f is present in transaction id: %d\n", item, i);
-      printf("items in this trans: \n");
+      // printf("\n%f is present in transaction id: %d\n", item, i);
+      // printf("items in this trans: \n");
 
       // std::vector<double> filtered;
       // std::copy_if (thisVect.begin(), thisVect.end(), std::back_inserter(filtered), [](double i){ return i != item; } );
       for (unsigned int j = 0; j < thisVect.size(); ++j) {
         if (thisVect[j] != item) {
-          printf("%f\n", thisVect[j]);
+          // printf("%f\n", thisVect[j]);
           associatedItems.push_back(thisVect[j]);
         }
       }
@@ -161,6 +161,22 @@ std::vector<double> getAssociations(Local<Array> trans, double item) {
 
   }
   return associatedItems;
+}
+
+unsigned int count(Local<Array> trans, double item) {
+  unsigned int count = 0;
+  unsigned int len = trans->Length();
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      if (thisItem == item) {
+        count++;
+      }
+    }
+  }
+  return count;
 }
 
 // std::vector<double> filterOutFromVect(std::vector<double> vect, double item) {
@@ -187,23 +203,37 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   Local<Array> input = Local<Array>::Cast(args[0]);
   Local<Array> items = getItems(input, isolate);
   std::vector<double> uniqs = getUniqueItems(items, isolate);
+  double antecedent = args[1]->NumberValue();
 
-  std::vector<double> assocs = getAssociations(input, args[1]->NumberValue());
+  std::vector<double> assocs = getAssociations(input, antecedent);
   std::vector<unsigned int> freqs = getFreq(assocs, uniqs);
-  // Local<Array> output = vectToJs1d(freqs, isolate);
+  unsigned int nA = count(input, antecedent);
 
   Local<Array> returnArray = Array::New(isolate);
   unsigned int index = 0;
   for (unsigned int i = 0; i < uniqs.size(); i++) {
     if (freqs[i] != 0) {
+      double consequent = uniqs[i];
       Local<Object> obj = Object::New(isolate);
       obj->Set(
-        String::NewFromUtf8(isolate, "item"), 
-        Number::New(isolate, uniqs[i])
+        String::NewFromUtf8(isolate, "antecedent"), 
+        Number::New(isolate, antecedent)
       );
       obj->Set(
-        String::NewFromUtf8(isolate, "frequency"), 
+        String::NewFromUtf8(isolate, "consequent"), 
+        Number::New(isolate, consequent)
+      );
+      obj->Set(
+        String::NewFromUtf8(isolate, "nAB"), 
         Number::New(isolate, freqs[i])
+      );
+      obj->Set(
+        String::NewFromUtf8(isolate, "nA"), 
+        Number::New(isolate, nA)
+      );
+      obj->Set(
+        String::NewFromUtf8(isolate, "nB"), 
+        Number::New(isolate, count(input, consequent))
       );
       returnArray->Set(index, obj);
       index++;
