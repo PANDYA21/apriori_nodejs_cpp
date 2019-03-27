@@ -12,5 +12,8 @@
     "cpp"
   ],
   "author": "bhaumik.pandya21@gmail.com",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
 }

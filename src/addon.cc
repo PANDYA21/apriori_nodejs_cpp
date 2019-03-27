@@ -62,14 +62,15 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
         thisfreq++;
       }
     }
-    printf("uniqs[%d]: %d, thisfreq: %d\n",i, uniqs[i], thisfreq);
+    printf("uniqs[%d]: %f, thisfreq: %d\n",i, uniqs[i], thisfreq);
     ans.push_back(thisfreq);
   }
   return ans;
 }
 
 
-Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
+// Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
+std::vector<double> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   Local<Array> arr2 = Array::New(isolate);
   unsigned int len = arr->Length();
   for (unsigned int i = 0; i < len; i++) {
@@ -82,16 +83,18 @@ Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   std::vector<double> v2 = v;
   auto last = std::unique(v.begin(), v.end());
   v.erase(last, v.end());
-  std::vector<unsigned int> freqs = getFreq(v2, v);
+  // std::vector<double> freqs = getFreq(v2, v);
 
-  Local<Array> arr4 = Array::New(isolate);
-  for (unsigned int i = 0; i < v.size(); i++) {
-    printf("v[i]: %f\n", v[i]);
-    Local<Number> retval = v8::Number::New(isolate, v[i]);
-    arr4->Set(i, retval);
-  }
+  return v;
 
-  return arr4;
+  // Local<Array> arr4 = Array::New(isolate);
+  // for (unsigned int i = 0; i < v.size(); i++) {
+  //   printf("v[i]: %f\n", v[i]);
+  //   Local<Number> retval = v8::Number::New(isolate, v[i]);
+  //   arr4->Set(i, retval);
+  // }
+
+  // return arr4;
 }
 
 Local<Array> getItems(Local<Array> input, Isolate* isolate) {
@@ -109,9 +112,62 @@ Local<Array> getItems(Local<Array> input, Isolate* isolate) {
       index++;
     }
   }
-  return getUniqueItems(arr, isolate);
+  // return getUniqueItems(arr, isolate);
+  return arr;
 }
 
+std::vector<double> js1dToVect(Local<Array> jsArr) {
+  double* cppArr = cast1dArray(jsArr);
+  unsigned int len = jsArr->Length();
+  std::vector<double> vect(cppArr, cppArr + len);
+  return vect;
+}
+
+Local<Array> vectToJs1d(std::vector<unsigned int> vect, Isolate* isolate) {
+  Local<Array> arr = Array::New(isolate);
+  for (unsigned int i = 0; i < vect.size(); i++) {
+    Local<Number> retval = v8::Number::New(isolate, vect[i]);
+    arr->Set(i, retval);
+  }
+  return arr;
+}
+
+bool containsVector(std::vector<double> vect, double item) {
+  return std::find(vect.begin(), vect.end(), item) != vect.end();
+}
+
+std::vector<double> getAssociations(Local<Array> trans, double item) {
+  unsigned int len = trans->Length();
+  std::vector<double> associatedItems;
+
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
+    unsigned int thisLen = thisTran->Length();
+
+    std::vector<double> thisVect = js1dToVect(thisTran);
+    if (containsVector(thisVect, item)) {
+      printf("\n%f is present in transaction id: %d\n", item, i);
+      printf("items in this trans: \n");
+
+      // std::vector<double> filtered;
+      // std::copy_if (thisVect.begin(), thisVect.end(), std::back_inserter(filtered), [](double i){ return i != item; } );
+      for (unsigned int j = 0; j < thisVect.size(); ++j) {
+        if (thisVect[j] != item) {
+          printf("%f\n", thisVect[j]);
+          associatedItems.push_back(thisVect[j]);
+        }
+      }
+    }
+
+  }
+  return associatedItems;
+}
+
+// std::vector<double> filterOutFromVect(std::vector<double> vect, double item) {
+//   std::vector<double> filtered;
+//   std::copy_if (vect.begin(), vect.end(), std::back_inserter(filtered), [](double i){ return i != item; } );
+//   return filtered;
+// }
 
 // This is the implementation of the "mine" method
 // Input arguments are passed using the
@@ -130,10 +186,36 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
 
   Local<Array> input = Local<Array>::Cast(args[0]);
   Local<Array> items = getItems(input, isolate);
+  std::vector<double> uniqs = getUniqueItems(items, isolate);
+
+  std::vector<double> assocs = getAssociations(input, args[1]->NumberValue());
+  std::vector<unsigned int> freqs = getFreq(assocs, uniqs);
+  // Local<Array> output = vectToJs1d(freqs, isolate);
+
+  Local<Array> returnArray = Array::New(isolate);
+  unsigned int index = 0;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    if (freqs[i] != 0) {
+      Local<Object> obj = Object::New(isolate);
+      obj->Set(
+        String::NewFromUtf8(isolate, "item"), 
+        Number::New(isolate, uniqs[i])
+      );
+      obj->Set(
+        String::NewFromUtf8(isolate, "frequency"), 
+        Number::New(isolate, freqs[i])
+      );
+      returnArray->Set(index, obj);
+      index++;
+    }
+  }
+
+
 
   // Set the return value (using the passed in
   // FunctionCallbackInfo<Value>&)
-  args.GetReturnValue().Set(items);
+  // args.GetReturnValue().Set(items);
+  args.GetReturnValue().Set(returnArray);
 }
 
 void Init(Local<Object> exports) {

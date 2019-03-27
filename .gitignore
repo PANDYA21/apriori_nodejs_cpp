@@ -1,0 +1,32 @@
+# R
+.Rproj.user
+*.RData
+.Rhistory
+
+# sublime
+*.sublime-workspace
+
+# python
+__pycache__
+
+# spark
+spark-warehouse
+
+# nodejs (because this is not a node project)
+node_modules
+package-lock.json
+
+# bower
+bower_components
+
+# misc.
+build
+*.log
+data
+results
+models
+*creds*.json
+
+# mongodb
+dump/*
+*.bson
