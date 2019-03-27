@@ -31,14 +31,12 @@ double* cast1dArray(Local<Array> input) {
 // cast cpp array from js array (2d arrays)
 double** cast2dArray(Local<Array> input) {
   unsigned int num = input->Length();
-  // double* output[num] = {};
   double** output = 0;
   output = new double*[num];
 
   for (unsigned int i = 0; i < num; i++) {
     Local<Array> arr = Local<Array>::Cast(input->Get(i));
     unsigned int lnum = arr->Length();
-    // double output[i][lnum] = {};
     output[i] = new double[lnum];
 
     for (unsigned int j = 0; j < lnum; j++) {
@@ -46,9 +44,7 @@ double** cast2dArray(Local<Array> input) {
       double value = v->NumberValue();
 
       output[i][j] = value;
-      // printf("%f\n", output[i][j]);
     }
-    // printf("\n");
   }
   return output;
 }
@@ -62,14 +58,12 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
         thisfreq++;
       }
     }
-    // printf("uniqs[%d]: %f, thisfreq: %d\n",i, uniqs[i], thisfreq);
     ans.push_back(thisfreq);
   }
   return ans;
 }
 
 
-// Local<Array> getUniqueItems(Local<Array> arr, Isolate* isolate) {
 std::vector<double> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   Local<Array> arr2 = Array::New(isolate);
   unsigned int len = arr->Length();
@@ -83,18 +77,8 @@ std::vector<double> getUniqueItems(Local<Array> arr, Isolate* isolate) {
   std::vector<double> v2 = v;
   auto last = std::unique(v.begin(), v.end());
   v.erase(last, v.end());
-  // std::vector<double> freqs = getFreq(v2, v);
-
+  
   return v;
-
-  // Local<Array> arr4 = Array::New(isolate);
-  // for (unsigned int i = 0; i < v.size(); i++) {
-  //   printf("v[i]: %f\n", v[i]);
-  //   Local<Number> retval = v8::Number::New(isolate, v[i]);
-  //   arr4->Set(i, retval);
-  // }
-
-  // return arr4;
 }
 
 Local<Array> getItems(Local<Array> input, Isolate* isolate) {
@@ -103,16 +87,12 @@ Local<Array> getItems(Local<Array> input, Isolate* isolate) {
   unsigned int nTrans = input->Length();
   for (unsigned int i = 0; i < nTrans; i++) {
     Local<Array> thisArray = Local<Array>::Cast(input->Get(i));
-    // printf("i is: %d\n", i);
     unsigned int nItemsInThisTran = thisArray->Length();
     for (unsigned int j = 0; j < nItemsInThisTran; j++) {
-      // printf("j is: %d\n", j);
       arr->Set(index, thisArray->Get(j));
-      // printf("arr->Get(%d): %f\n", index, arr->Get(index)->NumberValue());
       index++;
     }
   }
-  // return getUniqueItems(arr, isolate);
   return arr;
 }
 
@@ -146,14 +126,8 @@ std::vector<double> getAssociations(Local<Array> trans, double item) {
 
     std::vector<double> thisVect = js1dToVect(thisTran);
     if (containsVector(thisVect, item)) {
-      // printf("\n%f is present in transaction id: %d\n", item, i);
-      // printf("items in this trans: \n");
-
-      // std::vector<double> filtered;
-      // std::copy_if (thisVect.begin(), thisVect.end(), std::back_inserter(filtered), [](double i){ return i != item; } );
       for (unsigned int j = 0; j < thisVect.size(); ++j) {
         if (thisVect[j] != item) {
-          // printf("%f\n", thisVect[j]);
           associatedItems.push_back(thisVect[j]);
         }
       }
@@ -179,11 +153,6 @@ unsigned int count(Local<Array> trans, double item) {
   return count;
 }
 
-// std::vector<double> filterOutFromVect(std::vector<double> vect, double item) {
-//   std::vector<double> filtered;
-//   std::copy_if (vect.begin(), vect.end(), std::back_inserter(filtered), [](double i){ return i != item; } );
-//   return filtered;
-// }
 
 // This is the implementation of the "mine" method
 // Input arguments are passed using the
@@ -242,9 +211,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
 
 
 
-  // Set the return value (using the passed in
-  // FunctionCallbackInfo<Value>&)
-  // args.GetReturnValue().Set(items);
+  // Set the return value (using the passed in FunctionCallbackInfo<Value>&)
   args.GetReturnValue().Set(returnArray);
 }
 
@@ -254,4 +221,5 @@ void Init(Local<Object> exports) {
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
 
-}  // namespace demo
+}  
+// namespace demo
