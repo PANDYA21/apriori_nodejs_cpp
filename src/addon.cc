@@ -183,6 +183,10 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   for (unsigned int i = 0; i < uniqs.size(); i++) {
     if (freqs[i] != 0) {
       double consequent = uniqs[i];
+      unsigned int nB = count(input, consequent);
+      unsigned int nAB = freqs[i];
+      double confidence = (double)nAB / (double)nA;
+
       Local<Object> obj = Object::New(isolate);
       obj->Set(
         String::NewFromUtf8(isolate, "antecedent"), 
@@ -194,7 +198,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
       );
       obj->Set(
         String::NewFromUtf8(isolate, "nAB"), 
-        Number::New(isolate, freqs[i])
+        Number::New(isolate, nAB)
       );
       obj->Set(
         String::NewFromUtf8(isolate, "nA"), 
@@ -202,8 +206,13 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
       );
       obj->Set(
         String::NewFromUtf8(isolate, "nB"), 
-        Number::New(isolate, count(input, consequent))
+        Number::New(isolate, nB)
       );
+      obj->Set(
+        String::NewFromUtf8(isolate, "confidence"), 
+        Number::New(isolate, confidence)
+      );
+
       returnArray->Set(index, obj);
       index++;
     }
