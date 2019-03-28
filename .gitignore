@@ -26,6 +26,8 @@ data
 results
 models
 *creds*.json
+test2.js
+*.json
 
 # mongodb
 dump/*
