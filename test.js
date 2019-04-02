@@ -1,6 +1,8 @@
 const mine = require('.');
+const assert = require('assert');
 
-const assocs = mine([
+function test() {
+  const assocs = mine([
     [3, 10],
     [3, 4, 5],
     [3, 4, 5],
@@ -10,6 +12,10 @@ const assocs = mine([
     [3, 4, 1],
     [1, 2],
     [7, 8, 9]
-  ], 7);
+  ], { antecedent: 7 });
 
-console.log(assocs);
+  console.log(assocs);
+  return assocs.length;
+}
+
+assert.equal(test(), 2);

@@ -32,3 +32,5 @@ test2.js
 # mongodb
 dump/*
 *.bson
+mongo.js
+globals.json

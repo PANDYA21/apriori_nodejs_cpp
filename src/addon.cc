@@ -33,6 +33,22 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
   return ans;
 }
 
+unsigned int count(Local<Array> trans, double item) {
+  unsigned int count = 0;
+  unsigned int len = trans->Length();
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      if (thisItem == item) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
 
 // This is the implementation of the "mine" method
 // Input arguments are passed using the
@@ -72,7 +88,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
 
   // since antecedent has to be present in all transactions, nA = len
-  unsigned int nA = len; // count(input, antecedent);
+  unsigned int nA = len;
 
   // shape the return array
   Local<Array> returnArray = Array::New(isolate);
@@ -83,7 +99,6 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
       if (consequent == antecedent) {
         continue;
       }
-      unsigned int nB = 0; // count(input, consequent);
       unsigned int nAB = freqs[i];
       double confidence = (double)nAB / (double)nA;
 
@@ -103,10 +118,6 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
       obj->Set(
         String::NewFromUtf8(isolate, "nA"), 
         Number::New(isolate, nA)
-      );
-      obj->Set(
-        String::NewFromUtf8(isolate, "nB"), 
-        Number::New(isolate, nB)
       );
       obj->Set(
         String::NewFromUtf8(isolate, "confidence"), 
