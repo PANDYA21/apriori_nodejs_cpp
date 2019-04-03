@@ -9,12 +9,11 @@
   },
   "keywords": [
     "node",
-    "cpp"
+    "cpp",
+    "association-rule-mining"
   ],
   "author": "bhaumik.pandya21@gmail.com",
-  "license": "MIT",
   "dependencies": {
-    "lodash": "^4.17.11",
-    "mongodb": "^3.2.2"
+    "lodash": "^4.17.11"
   }
 }

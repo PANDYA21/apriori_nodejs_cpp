@@ -12,10 +12,13 @@ function test() {
     [3, 4, 1],
     [1, 2],
     [7, 8, 9]
-  ], { antecedent: 7 });
+  ], { 
+    antecedent: 3,
+    sortingMeasure: 'lift'
+  });
 
   console.log(assocs);
   return assocs.length;
 }
 
-assert.equal(test(), 2);
+assert.equal(test(), 4);

@@ -9,6 +9,9 @@ module.exports = function mine(transactions, options) {
   if (measures[sortingMeasure] == undefined) {
     throw new Error(`Sorting measure "${sortingMeasure}" not supported`);
   }
+  if (sortingMeasure !== 'confidence') {
+    options.attachMeasures = options.attachMeasures || false;
+  }
 
   let transactionsWithAntecedent = [];
   _.each(transactions, x => {
@@ -20,6 +23,9 @@ module.exports = function mine(transactions, options) {
   const counts = _.countBy(_.flattenDeep(transactions));
   let ans = associations;
   _.each(ans, x => {
+    if (!options.attachMeasures) {
+      return;
+    }
     x.nB = counts[x.consequent.toString()];
     x.lift = measures.lift(x.nA, x.nB, x.nAB, transactions.length);
     x.improvedLift = measures.improvedLift(x.nA, x.nB, x.nAB, transactions.length);
