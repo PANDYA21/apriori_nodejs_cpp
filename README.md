@@ -4,7 +4,13 @@
 - Computation in `C++`
 
 # Motivation
-benchmark
+## Benchmark
+### Transactions Growth
+<img src="./benchmark/plt_trans.png">
+
+### Itemset Growth
+<img src="./benchmark/plt_items.png">
+<!-- ![image info](./benchmark/plt_trans.png) -->
 
 # Usage
 
