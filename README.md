@@ -1,5 +1,5 @@
 # Simple Recommendation Engine
-- Package for Node.JS
+- Package for `Ǹode.JS`
 - Based on Association Rule Learning
 - Computation in `C++`
 

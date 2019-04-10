@@ -66,66 +66,115 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   }
 
   Local<Array> input = Local<Array>::Cast(args[0]);
-  double antecedent = args[1]->NumberValue();
+  // double antecedent = args[1]->NumberValue();
+  double minsupp = args[2]->NumberValue();
+  double minconf = args[3]->NumberValue();
   unsigned int len = input->Length();
-  std::vector<double> associatedItems;
+  std::vector<double> flattrans;
 
-  // create flat vector of associatied items
+  // create flat vector of transaction items
   for (unsigned int i = 0; i < len; i++) {
     Local<Array> thisTran = Local<Array>::Cast(input->Get(i));
     unsigned int thisLen = thisTran->Length();
     for (unsigned int j = 0; j < thisLen; j++) {
       double thisItem = thisTran->Get(j)->NumberValue();
-      associatedItems.push_back(thisItem);
+      flattrans.push_back(thisItem);
     }
   }
 
-  // create unique item vecor from the associated vector
-  std::vector<double> uniqs = associatedItems;
+  // create unique item vecor from the flat vector
+  std::vector<double> uniqs = flattrans;
   std::sort(uniqs.begin(), uniqs.end());
   auto last = std::unique(uniqs.begin(), uniqs.end());
   uniqs.erase(last, uniqs.end());
-  std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
+  std::vector<unsigned int> freqs = getFreq(flattrans, uniqs);
 
-  // since antecedent has to be present in all transactions, nA = len
-  unsigned int nA = len;
+  // filter frequent items from uniqs
+  std::vector<double> frequentUniqs;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    if (freqs[i] < minsupp) {
+      continue;
+    }
+    frequentUniqs.push_back(uniqs[i]);
+  }
+
 
   // shape the return array
   Local<Array> returnArray = Array::New(isolate);
   unsigned int index = 0;
-  for (unsigned int i = 0; i < uniqs.size(); i++) {
-    if (freqs[i] != 0) {
-      double consequent = uniqs[i];
-      if (consequent == antecedent) {
+
+  for (unsigned int i = 0; i < frequentUniqs.size(); i++) {
+    std::vector<double> thisFlattrans;
+
+    // create flat vector of transaction items
+    for (unsigned int ii = 0; ii < len; ii++) {
+      Local<Array> thisTran = Local<Array>::Cast(input->Get(ii));
+      unsigned int thisLen = thisTran->Length();
+      bool itemPresentInThisTran = false;
+      for (unsigned int j = 0; j < thisLen; j++) {
+        double thisItem = thisTran->Get(j)->NumberValue();
+        if (thisItem == uniqs[i]) {
+          itemPresentInThisTran = true;
+        }
+      }
+      if (!itemPresentInThisTran) {
         continue;
       }
-      unsigned int nAB = freqs[i];
-      double confidence = (double)nAB / (double)nA;
+      for (unsigned int jj = 0; jj < thisLen; jj++) {
+        double thisItem = thisTran->Get(jj)->NumberValue();
+        thisFlattrans.push_back(thisItem);
+      }
+    }
 
-      Local<Object> obj = Object::New(isolate);
-      obj->Set(
-        String::NewFromUtf8(isolate, "antecedent"), 
-        Number::New(isolate, antecedent)
-      );
-      obj->Set(
-        String::NewFromUtf8(isolate, "consequent"), 
-        Number::New(isolate, consequent)
-      );
-      obj->Set(
-        String::NewFromUtf8(isolate, "nAB"), 
-        Number::New(isolate, nAB)
-      );
-      obj->Set(
-        String::NewFromUtf8(isolate, "nA"), 
-        Number::New(isolate, nA)
-      );
-      obj->Set(
-        String::NewFromUtf8(isolate, "confidence"), 
-        Number::New(isolate, confidence)
-      );
+    // create unique item vecor from the flat vector
+    std::vector<double> thisUniqs = thisFlattrans;
+    std::sort(thisUniqs.begin(), thisUniqs.end());
+    auto last = std::unique(thisUniqs.begin(), thisUniqs.end());
+    thisUniqs.erase(last, thisUniqs.end());
+    std::vector<unsigned int> thisFreqs = getFreq(thisFlattrans, thisUniqs);
 
-      returnArray->Set(index, obj);
-      index++;
+    double antecedent = uniqs[i];
+    unsigned int nA = thisUniqs.size();
+    for (unsigned int iii = 0; iii < thisUniqs.size(); iii++) {
+      if (thisFreqs[iii] != 0) {
+        if (thisFreqs[iii] < minsupp) {
+          continue;
+        }
+        double consequent = thisUniqs[iii];
+        if (consequent == antecedent) {
+          continue;
+        }
+        unsigned int nAB = thisFreqs[iii];
+        double confidence = (double)nAB / (double)nA;
+        if (confidence < minconf) {
+          continue;
+        }
+
+        Local<Object> obj = Object::New(isolate);
+        obj->Set(
+          String::NewFromUtf8(isolate, "antecedent"), 
+          Number::New(isolate, antecedent)
+        );
+        obj->Set(
+          String::NewFromUtf8(isolate, "consequent"), 
+          Number::New(isolate, consequent)
+        );
+        obj->Set(
+          String::NewFromUtf8(isolate, "nAB"), 
+          Number::New(isolate, nAB)
+        );
+        obj->Set(
+          String::NewFromUtf8(isolate, "nA"), 
+          Number::New(isolate, nA)
+        );
+        obj->Set(
+          String::NewFromUtf8(isolate, "confidence"), 
+          Number::New(isolate, confidence)
+        );
+
+        returnArray->Set(index, obj);
+        index++;
+      }
     }
   }
 

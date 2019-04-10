@@ -99,8 +99,10 @@ function benchmark(nTests = 5, nTrans = 1000, nItems = 100) {
 function benchmarkForTransCount(nCounts = 5) {
   let ans = [];
   for (let i = 0; i < nCounts; i++) {
-    const thisNTrans = 10000 + i*1000;
-    const thisNItems = 1000;
+    const initNTrans = 1000;
+    const thisNTrans = initNTrans + i*initNTrans*0.1;
+    console.log({ thisNTrans });
+    const thisNItems = 100;
     let thisBenchmark = benchmark(5, thisNTrans, thisNItems);
     _.each(thisBenchmark, x => {
       x.nTrans = thisNTrans;
@@ -126,7 +128,9 @@ function benchmarkForItemsCount(nCounts = 5) {
   return ans;
 }
 
-(function main() {
-  fs.writeFile('./benchmark_trans2.json', JSON.stringify(benchmarkForTransCount(), null, 2), 'utf8', err => err ? console.error(err): null);
-  fs.writeFile('./benchmark_items2.json', JSON.stringify(benchmarkForItemsCount(), null, 2), 'utf8', err => err ? console.error(err): null);
-})();
+// (function main() {
+//   fs.writeFile('./benchmark_trans2.json', JSON.stringify(benchmarkForTransCount(), null, 2), 'utf8', err => err ? console.error(err): null);
+//   fs.writeFile('./benchmark_items2.json', JSON.stringify(benchmarkForItemsCount(), null, 2), 'utf8', err => err ? console.error(err): null);
+// })();
+
+console.log(benchmarkForTransCount());

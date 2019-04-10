@@ -3,27 +3,23 @@ const _ = require('lodash');
 const measures = require('./interestingmeasures');
 
 
-module.exports = function mine(transactions, options) {
-  // const antecedent = options.antecedent;
+function mineOne(transactions, options) {
+  const antecedent = options.antecedent;
   const sortingMeasure = options.sortingMeasure || 'confidence';
-  const minsupp = options.minsupp || 0;
-  const minconf = options.minconf || 0;
-
   if (measures[sortingMeasure] == undefined) {
-    throw new Error(`Sorting measure "${sortingMeasure}" not supported`);
+    throw new Error(`Sorting measure "${sortingMeasure}" is not supported.`);
   }
   if (sortingMeasure !== 'confidence') {
     options.attachMeasures = options.attachMeasures || false;
   }
 
-  // let transactionsWithAntecedent = [];
-  // _.each(transactions, x => {
-  //   if (x.indexOf(antecedent) !== -1) {
-  //     transactionsWithAntecedent.push(x);
-  //   }
-  // })
-  // const associations = addon.mine(transactionsWithAntecedent, antecedent, minsupp, minconf);
-  const associations = addon.mine(transactions, null, minsupp, minconf);
+  let transactionsWithAntecedent = [];
+  _.each(transactions, x => {
+    if (x.indexOf(antecedent) !== -1) {
+      transactionsWithAntecedent.push(x);
+    }
+  })
+  const associations = addon.mine(transactionsWithAntecedent, antecedent);
   const counts = _.countBy(_.flattenDeep(transactions));
   let ans = associations;
   _.each(ans, x => {
@@ -43,4 +39,25 @@ module.exports = function mine(transactions, options) {
   });
   ans = _.sortBy(ans, x => -x[sortingMeasure]);
   return ans;
-};
+}
+
+function mine(transactions, options) {
+  const antecedent = options.antecedent;
+  let mineAll = false;
+  if (!antecedent) {
+    // throw new Error('Antecedent must be supplied.');
+    mineAll = true;
+  }
+  if (!mineAll) {
+    return mineOne(transactions, options);
+  }
+  const uniqs = _.uniq(_.flattenDeep(transactions));
+  let assocs = [];
+  for (let item of uniqs) {
+    options.antecedent = item;
+    assocs = _.concat(assocs, mineOne(transactions, options));
+  }
+  return assocs;
+}
+
+module.exports = mine;

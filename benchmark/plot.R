@@ -71,7 +71,18 @@ plt_items <- ggplot(data = newdf2, mapping = aes(x = factor(x), y = y/1000)) +
   facet_wrap(.~class, ncol = 2, scales = "free")
 
 
-
-
 ggsave('./plt_trans.png', plt_trans, width = 12 * 0.75, height = 7 * 0.75, units = 'in', dpi = 600);
 ggsave('./plt_items.png', plt_items, width = 12 * 0.75, height = 7 * 0.75, units = 'in', dpi = 600);
+
+
+
+# print(benchmark_trans$jsTime / benchmark_trans$cppTime)
+# print(benchmark_items$jsTime / benchmark_items$cppTime)
+
+plt_trans_ratio <- ggplot(data = benchmark_trans, mapping = aes(x = factor(nTrans), y = jsTime / cppTime)) + 
+  geom_boxplot()
+plt_items_ratio <- ggplot(data = benchmark_items, mapping = aes(x = factor(nItems), y = jsTime / cppTime)) + 
+  geom_boxplot()
+
+ggsave('./plt_trans_ratio.png', plt_trans_ratio, width = 12 * 0.75, height = 7 * 0.75, units = 'in', dpi = 600);
+ggsave('./plt_items_ratio.png', plt_items_ratio, width = 12 * 0.75, height = 7 * 0.75, units = 'in', dpi = 600);
