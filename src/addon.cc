@@ -67,8 +67,16 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
 
   Local<Array> input = Local<Array>::Cast(args[0]);
   double antecedent = args[1]->NumberValue();
+  Local<Array> uniqsarr = Local<Array>::Cast(args[2]);
   unsigned int len = input->Length();
   std::vector<double> associatedItems;
+
+  // convert the js-array to cpp-vector
+  std::vector<double> uniqs;
+  for (unsigned int i = 0; i < uniqsarr->Length(); i++) {
+    double thisItem = uniqsarr->Get(i)->NumberValue();
+    uniqs.push_back(thisItem);
+  }
 
   // create flat vector of associatied items
   for (unsigned int i = 0; i < len; i++) {
@@ -80,11 +88,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
     }
   }
 
-  // create unique item vecor from the associated vector
-  std::vector<double> uniqs = associatedItems;
-  std::sort(uniqs.begin(), uniqs.end());
-  auto last = std::unique(uniqs.begin(), uniqs.end());
-  uniqs.erase(last, uniqs.end());
+  // count the frequencies
   std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
 
   // since antecedent has to be present in all transactions, nA = len
@@ -135,8 +139,59 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(returnArray);
 }
 
+
+// This is the implementation of the "getConsequents" method
+// Input arguments are passed using the
+// const FunctionCallbackInfo<Value>& args struct
+void getConsequents(const FunctionCallbackInfo<Value>& args) {
+  Isolate* isolate = args.GetIsolate();
+
+  // Check the argument types
+  if (!args[0]->IsArray()) {
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate,
+                            "Wrong arguments",
+                            NewStringType::kNormal).ToLocalChecked()));
+    return;
+  }
+
+  Local<Array> input = Local<Array>::Cast(args[0]);
+  double antecedent = args[1]->NumberValue();
+  unsigned int len = input->Length();
+  std::vector<double> associatedItems;
+
+  // create flat vector of associatied items
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(input->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      associatedItems.push_back(thisItem);
+    }
+  }
+
+  // create unique item vecor from the associated vector
+  std::vector<double> uniqs = associatedItems;
+  std::sort(uniqs.begin(), uniqs.end());
+  auto last = std::unique(uniqs.begin(), uniqs.end());
+  uniqs.erase(last, uniqs.end());
+
+  // shape the return array
+  Local<Array> returnArray = Array::New(isolate);
+  unsigned int index = 0;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    returnArray->Set(index, Number::New(isolate, uniqs[i]));
+    index++;
+  }
+
+
+  // Set the return value (using the passed in FunctionCallbackInfo<Value>&)
+  args.GetReturnValue().Set(returnArray);
+}
+
 void Init(Local<Object> exports) {
   NODE_SET_METHOD(exports, "mine", Mine);
+  NODE_SET_METHOD(exports, "getConsequents", getConsequents);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
