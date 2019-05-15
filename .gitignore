@@ -28,6 +28,10 @@ models
 *creds*.json
 test2.js
 *.json
+temp.R
+cleanup.R
+temp.js
+test*.js
 
 # mongodb
 dump/*
