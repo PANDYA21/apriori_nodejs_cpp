@@ -4,11 +4,8 @@ const measures = require('./interestingmeasures');
 
 
 module.exports = function mine(transactions, options) {
-  // const antecedent = options.antecedent;
+  const antecedent = options.antecedent;
   const sortingMeasure = options.sortingMeasure || 'confidence';
-  const minsupp = options.minsupp || 0;
-  const minconf = options.minconf || 0;
-
   if (measures[sortingMeasure] == undefined) {
     throw new Error(`Sorting measure "${sortingMeasure}" not supported`);
   }
@@ -16,14 +13,13 @@ module.exports = function mine(transactions, options) {
     options.attachMeasures = options.attachMeasures || false;
   }
 
-  // let transactionsWithAntecedent = [];
-  // _.each(transactions, x => {
-  //   if (x.indexOf(antecedent) !== -1) {
-  //     transactionsWithAntecedent.push(x);
-  //   }
-  // })
-  // const associations = addon.mine(transactionsWithAntecedent, antecedent, minsupp, minconf);
-  const associations = addon.mine(transactions, null, minsupp, minconf);
+  let transactionsWithAntecedent = [];
+  _.each(transactions, x => {
+    if (x.indexOf(antecedent) !== -1) {
+      transactionsWithAntecedent.push(x);
+    }
+  })
+  const associations = addon.mine(transactionsWithAntecedent, antecedent);
   const counts = _.countBy(_.flattenDeep(transactions));
   let ans = associations;
   _.each(ans, x => {
