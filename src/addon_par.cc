@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
-#include <ctime>
 
 namespace demo {
 
@@ -18,6 +17,37 @@ using v8::Number;
 using v8::Object;
 using v8::String;
 using v8::Value;
+
+
+std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs) {
+  std::vector<unsigned int> ans;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    unsigned int thisfreq = 0;
+    for (unsigned int j = 0; j < flattrans.size(); j++) {
+      if (uniqs[i] == flattrans[j]) {
+        thisfreq++;
+      }
+    }
+    ans.push_back(thisfreq);
+  }
+  return ans;
+}
+
+unsigned int count(Local<Array> trans, double item) {
+  unsigned int count = 0;
+  unsigned int len = trans->Length();
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      if (thisItem == item) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
 
 
 // This is the implementation of the "mine" method
@@ -38,42 +68,28 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   Local<Array> input = Local<Array>::Cast(args[0]);
   double antecedent = args[1]->NumberValue();
   Local<Array> uniqsarr = Local<Array>::Cast(args[2]);
-  Local<Array> associatedarr = Local<Array>::Cast(args[3]);
   unsigned int len = input->Length();
+  std::vector<double> associatedItems;
 
   // convert the js-array to cpp-vector
   std::vector<double> uniqs;
-  // for (unsigned int i = 0; i < uniqsarr->Length(); i++) {
-  //   double thisItem = uniqsarr->Get(i)->NumberValue();
-  //   uniqs.push_back(thisItem);
-  // }
-
-  std::vector<double> associatedItems;
-  for (unsigned int i = 0; i < associatedarr->Length(); i++) {
-    if (i < uniqsarr->Length()) {
-      double thisItem = uniqsarr->Get(i)->NumberValue();
-      uniqs.push_back(thisItem);
-    }
-    double thisItem = associatedarr->Get(i)->NumberValue();
-    associatedItems.push_back(thisItem);
+  for (unsigned int i = 0; i < uniqsarr->Length(); i++) {
+    double thisItem = uniqsarr->Get(i)->NumberValue();
+    uniqs.push_back(thisItem);
   }
 
-  // // create flat vector of associatied items
-  // for (unsigned int i = 0; i < len; i++) {
-  //   Local<Array> thisTran = Local<Array>::Cast(input->Get(i));
-  //   unsigned int thisLen = thisTran->Length();
-  //   for (unsigned int j = 0; j < thisLen; j++) {
-  //     double thisItem = thisTran->Get(j)->NumberValue();
-  //     associatedItems.push_back(thisItem);
-  //   }
-  // }
+  // create flat vector of associatied items
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(input->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      associatedItems.push_back(thisItem);
+    }
+  }
 
   // count the frequencies
-  std::time_t result = std::time(nullptr);
-  printf("%s\n", std::asctime(std::localtime(&result)));
   std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
-  std::time_t result2 = std::time(nullptr);
-  printf("%s\n", std::asctime(std::localtime(&result2)));
 
   // since antecedent has to be present in all transactions, nA = len
   unsigned int nA = len;
@@ -162,37 +178,15 @@ void getConsequents(const FunctionCallbackInfo<Value>& args) {
 
   // shape the return array
   Local<Array> returnArray = Array::New(isolate);
-  // unsigned int index = 0;
-  // for (unsigned int i = 0; i < uniqs.size(); i++) {
-  //   returnArray->Set(index, Number::New(isolate, uniqs[i]));
-  //   index++;
-  // }
-
-  // shape the return array 2
-  Local<Array> returnArray2 = Array::New(isolate);
-  unsigned int index2 = 0;
-  for (unsigned int i = 0; i < associatedItems.size(); i++) {
-    if (i < uniqs.size()) {
-      returnArray->Set(index2, Number::New(isolate, uniqs[i]));
-    }
-    returnArray2->Set(index2, Number::New(isolate, associatedItems[i]));
-    index2++;
+  unsigned int index = 0;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    returnArray->Set(index, Number::New(isolate, uniqs[i]));
+    index++;
   }
-
-  // shape the return object
-  Local<Object> returnObject = Object::New(isolate);
-  returnObject->Set(
-    String::NewFromUtf8(isolate, "uniqs"), 
-    returnArray
-  );
-  returnObject->Set(
-    String::NewFromUtf8(isolate, "associatedItems"), 
-    returnArray2
-  );
 
 
   // Set the return value (using the passed in FunctionCallbackInfo<Value>&)
-  args.GetReturnValue().Set(returnObject);
+  args.GetReturnValue().Set(returnArray);
 }
 
 void Init(Local<Object> exports) {
