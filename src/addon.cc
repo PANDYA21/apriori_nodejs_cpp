@@ -20,6 +20,37 @@ using v8::String;
 using v8::Value;
 
 
+std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs) {
+  std::vector<unsigned int> ans;
+  for (unsigned int i = 0; i < uniqs.size(); i++) {
+    unsigned int thisfreq = 0;
+    for (unsigned int j = 0; j < flattrans.size(); j++) {
+      if (uniqs[i] == flattrans[j]) {
+        thisfreq++;
+      }
+    }
+    ans.push_back(thisfreq);
+  }
+  return ans;
+}
+
+unsigned int count(Local<Array> trans, double item) {
+  unsigned int count = 0;
+  unsigned int len = trans->Length();
+  for (unsigned int i = 0; i < len; i++) {
+    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
+    unsigned int thisLen = thisTran->Length();
+    for (unsigned int j = 0; j < thisLen; j++) {
+      double thisItem = thisTran->Get(j)->NumberValue();
+      if (thisItem == item) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+
 // This is the implementation of the "mine" method
 // Input arguments are passed using the
 // const FunctionCallbackInfo<Value>& args struct
