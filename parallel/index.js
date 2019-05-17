@@ -64,13 +64,14 @@ function mineParallel(transactions, options) {
         // const outputFile = stdout.replace('done=', '').replace('\n', '');
         const outputFile = `assocs_${i}_${reqTime}.json`;
         associations.push(require('../' + outputFile));
+        // clean-up
+        fs.unlinkSync(outputFile);
         if (associations.length === options.nCores) {
           // all workers are done
           const ans = _.slice(_.sortBy(_.flattenDeep(associations), x => -x.confidence), 0, 10);
           options.callback(ans);
           // clean-up
           fs.unlinkSync(file);
-          fs.unlinkSync(outputFile);
           return;
         }
       }

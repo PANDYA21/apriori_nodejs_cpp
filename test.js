@@ -14,7 +14,9 @@ function test(cb) {
     [7, 8, 9]
   ], { 
     antecedent: 3,
-    sortingMeasure: 'lift',
+    parallel: true,
+    nCores: 2,
+    // sortingMeasure: 'lift',
     callback: assocs => {
       console.log(assocs);
       cb(assocs.length);
