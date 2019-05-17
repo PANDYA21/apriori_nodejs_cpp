@@ -24,11 +24,11 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
   unsigned int siz = uniqs.size();
   unsigned int flattransiz = flattrans.size();
   std::vector<unsigned int> ans(siz);
-  
+
   for (unsigned int i = 0; i < siz; i++) {
     unsigned int thisfreq = 0;
     for (unsigned int j = 0; j < flattransiz; j++) {
-      if (uniqs[i] == flattrans[j]) {
+      if (uniqs.at(i) == flattrans.at(j)) {
         thisfreq++;
       }
     }
@@ -36,6 +36,7 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
   }
   return ans;
 }
+
 
 unsigned int count(Local<Array> trans, double item) {
   unsigned int count = 0;
@@ -78,10 +79,8 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   // convert the js-array to cpp-vector
   unsigned int uniqsLen = uniqsarr->Length();
   std::vector<double> uniqs(uniqsLen);
-
   unsigned int associatedItemsLen = associatedarr->Length();
   std::vector<double> associatedItems(associatedItemsLen);
-
   for (unsigned int i = 0; i < associatedItemsLen; i++) {
     if (i < uniqsLen) {
       double thisItem = uniqsarr->Get(i)->NumberValue();
@@ -91,12 +90,12 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
     associatedItems.at(i) = thisItem;
   }
 
-  // count the frequencies
-  // std::time_t result = std::time(nullptr);
-  // printf("%s\n", std::asctime(std::localtime(&result)));
+  // count the frequencies <- this is where it takes max time
+  std::time_t result = std::time(nullptr);
+  printf("%s\n", std::asctime(std::localtime(&result)));
   std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
-  // std::time_t result2 = std::time(nullptr);
-  // printf("%s\n", std::asctime(std::localtime(&result2)));
+  std::time_t result2 = std::time(nullptr);
+  printf("%s\n", std::asctime(std::localtime(&result2)));
 
   // since antecedent has to be present in all transactions, nA = len
   unsigned int nA = len;
@@ -184,16 +183,21 @@ void getConsequents(const FunctionCallbackInfo<Value>& args) {
 
   // shape the return array
   Local<Array> returnArray = Array::New(isolate);
+  // unsigned int index = 0;
+  // for (unsigned int i = 0; i < uniqs.size(); i++) {
+  //   returnArray->Set(index, Number::New(isolate, uniqs[i]));
+  //   index++;
+  // }
+
   // shape the return array 2
   Local<Array> returnArray2 = Array::New(isolate);
-
-  unsigned int index = 0;
+  unsigned int index2 = 0;
   for (unsigned int i = 0; i < associatedItems.size(); i++) {
     if (i < uniqs.size()) {
-      returnArray->Set(index, Number::New(isolate, uniqs[i]));
+      returnArray->Set(index2, Number::New(isolate, uniqs[i]));
     }
-    returnArray2->Set(index, Number::New(isolate, associatedItems[i]));
-    index++;
+    returnArray2->Set(index2, Number::New(isolate, associatedItems[i]));
+    index2++;
   }
 
   // shape the return object

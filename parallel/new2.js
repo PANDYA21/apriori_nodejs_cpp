@@ -28,7 +28,7 @@ function serial() {
 }
 
 
-const nCores = 6;
+const nCores = 3;
 
 function parallel(cb) {
   const { execFile } = require('child_process');
