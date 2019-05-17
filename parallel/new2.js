@@ -63,7 +63,7 @@ function parallel(cb) {
 // const par = parallel();
 
 /////////////////////////////// benchmarking
-const nTests = 10;
+const nTests = 200;
 
 const ser = serial;
 const par = async function() {

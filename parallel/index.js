@@ -1,106 +1,84 @@
+const { getConsequents, mine } = require('../build/Release/addon');
 const _ = require('lodash');
-const fs = require('fs');
 const { execFile } = require('child_process');
+const os = require('os');
+const maxCores = os.cpus().length - 1;
+const fs = require('fs');
 const path = require('path');
 
-// split data into required portions
-function splitArray(arr, nSplits) {
-  const nRows = Math.round(arr.length / nSplits);
-
-  let arrSplitted = [];
-  for (let i = 0; i < nSplits; i++) {
-    const start = nRows * i;
-    const end = i === nSplits - 1 ? arr.length : nRows * (i + 1);
-    arrSplitted.push(_.slice(arr, start, end));
-  }
-  return arrSplitted;
-}
-
-// save splitted data onto file-system for workers to read later
-function saveSplitData(arrSplitted, reqTime = Date.now()) {
-  let splitFileNames = [];
-  for (let i in arrSplitted) {
-    const file = `split_${reqTime}_${i}.json`;
-    fs.writeFileSync(file, JSON.stringify(arrSplitted[i]), 'UTF-8');
-    splitFileNames.push(file);
-  }
-  return splitFileNames;
-}
-
-
 // options: {
-//   antecedent: Number
-//   sortingMeasure?: String
-//   minsupp?: Number
-//   minconf?: Number
-//   attachMeasures?: Boolean
+//   antecedent: Number,
+//   parallel?: Boolean,
 //   nCores?: Number
-//   workerEnv?: Array of Object
-//   cb?: 
+//   callback: Function
 // }
-function main(transactions, options, cb) {
-  // request time as constant
-  const reqTime = Date.now();
-  // wrap the options, check for caalback
-  const nCores = options.nCores || numCPUs;
-  options.nCores = nCores;
-  cb = cb || options.cb;
-  if (!cb) {
-    throw new Error('callback is required');
+function wrapDefaultOptions(options = {}) {
+  const defaults = {
+    parallel: false,
+    nCores: 1
+  };
+  for (let opt in defaults) {
+    if (typeof options[opt] === 'undefined') {
+      options[opt] = defaults[opt];
+    }
   }
-  options.cb = cb;
+  if (options.parallel) {
+    options.nCores = options.nCores || maxCores;
+  } else {
+    options.nCores = defaults.nCores;
+  }
+  return options;
+}
 
-  // split data and save temp files
-  const arrSplitted = splitArray(transactions, nCores);
-  const splitFileNames = saveSplitData(arrSplitted, reqTime);
-  options.splitFileNames = splitFileNames;
-  options.nCores = splitFileNames.length; // just to be sure
-  options.reqTime = reqTime;
+function mineParallel(transactions, options) {
+  const reqTime = Date.now();
+  options = wrapDefaultOptions(options);
+  if (!options.callback) {
+    throw new Error ('Callback required');
+  }
+  const len = transactions.length;
 
-  // start parallel cluster
-  startCluster(options);
+  // write temp treansactions file for the workers to read
+  const file = `temp_trans_${reqTime}.json`;
+  fs.writeFileSync(file, JSON.stringify(transactions), 'UTF-8');
+
+  // start workers
+  let associations = [];
+  for (let i = 0; i < options.nCores; i++) {
+    const args = [
+      path.join(__dirname, 'worker.js'),
+      `START=${i === 0 ? 0 : (len / options.nCores * i + 1)}`,
+      `END=${(len / options.nCores * (i + 1))}`,
+      `TRANSACTIONS=${file}`,
+      `WORKERID=${i}`,
+      `REQTIME=${reqTime}`,
+      `ANTECEDENT=${options.antecedent}`
+    ];
+    execFile('node', args, (error, stdout, stderr) => {
+      if (error) {
+        return console.error(error);
+      }
+      // console.log(stdout);
+      // console.error(stderr);
+      if (stdout.indexOf('done') !== -1) {
+        // const outputFile = stdout.replace('done=', '').replace('\n', '');
+        const outputFile = `assocs_${i}_${reqTime}.json`;
+        associations.push(require('../' + outputFile));
+        if (associations.length === options.nCores) {
+          // all workers are done
+          const ans = _.slice(_.sortBy(_.flattenDeep(associations), x => -x.confidence), 0, 10);
+          options.callback(ans);
+          // clean-up
+          fs.unlinkSync(file);
+          fs.unlinkSync(outputFile);
+          return;
+        }
+      }
+    });
+  }
+
 }
 
 
-// start nodejs cluster as a forked process
-function startCluster(options) {
-  fs.writeFileSync('./options_' + options.reqTime + '.json', JSON.stringify(options, null, 2), 'UTF-8');
-  const file = path.join(__dirname, 'core.js');
-  execFile('node', [file, `REQTIME=${options.reqTime}`], (error, stdout, stderr) => {
-    if (error) {
-      console.error(error);
-    }
-    console.log(stdout, stdout.indexOf('done'));
-    console.error(stderr);
-    if (stdout.indexOf('done') !== -1) {
-      console.log('This happened here');
-      const assocs = require(path.join(__dirname, `/../assoc_${options.reqTime}.json`));
-      options.cb(assocs);
-    }
-  });
-}
 
-
-// test
-function getTrans() {
-  const ans = require('../trans4.json');
-  console.log({ ntrans: ans.length });
-  let finans = [];
-  _.each(ans, x => {
-    let prods = [];
-    _.each(_.uniq(x.produkts), xx => prods.push(parseInt(xx)));
-    finans.push(prods);
-  });
-  return finans;
-}
-
-const trans = getTrans();
-const t1 = Date.now();
-main(_.slice(trans, 0, 1000), {
-  antecedent: 9000001,
-  nCores: 5
-}, assoc => {
-  const t2 = Date.now();
-  console.log(assoc);
-  console.log((t2 - t1) / 1000);
-});
+module.exports = { mineParallel };

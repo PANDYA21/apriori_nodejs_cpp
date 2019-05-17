@@ -20,9 +20,7 @@ using v8::String;
 using v8::Value;
 
 
-std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs) {
-  unsigned int siz = uniqs.size();
-  unsigned int flattransiz = flattrans.size();
+std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs, unsigned int flattransiz, unsigned int siz) {
   std::vector<unsigned int> ans(siz);
   
   for (unsigned int i = 0; i < siz; i++) {
@@ -35,22 +33,6 @@ std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<dou
     ans.at(i) = thisfreq;
   }
   return ans;
-}
-
-unsigned int count(Local<Array> trans, double item) {
-  unsigned int count = 0;
-  unsigned int len = trans->Length();
-  for (unsigned int i = 0; i < len; i++) {
-    Local<Array> thisTran = Local<Array>::Cast(trans->Get(i));
-    unsigned int thisLen = thisTran->Length();
-    for (unsigned int j = 0; j < thisLen; j++) {
-      double thisItem = thisTran->Get(j)->NumberValue();
-      if (thisItem == item) {
-        count++;
-      }
-    }
-  }
-  return count;
 }
 
 
@@ -94,7 +76,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   // count the frequencies
   // std::time_t result = std::time(nullptr);
   // printf("%s\n", std::asctime(std::localtime(&result)));
-  std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs);
+  std::vector<unsigned int> freqs = getFreq(associatedItems, uniqs, associatedItemsLen, uniqsLen);
   // std::time_t result2 = std::time(nullptr);
   // printf("%s\n", std::asctime(std::localtime(&result2)));
 
@@ -104,7 +86,7 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   // shape the return array
   Local<Array> returnArray = Array::New(isolate);
   unsigned int index = 0;
-  for (unsigned int i = 0; i < uniqs.size(); i++) {
+  for (unsigned int i = 0; i < uniqsLen; i++) {
     if (freqs[i] != 0) {
       double consequent = uniqs[i];
       if (consequent == antecedent) {
