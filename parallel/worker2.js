@@ -6,7 +6,7 @@ const END = parseInt(_.find(args, x => x.match('END')).replace('END=', ''));
 
 // test
 function getTrans() {
-  const ans = require('../trans4.json');
+  const ans = require('../trans7.json');
   // console.log({ ntrans: ans.length });
   let finans = [];
   _.each(ans, x => {

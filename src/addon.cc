@@ -21,15 +21,19 @@ using v8::Value;
 
 
 std::vector<unsigned int> getFreq(std::vector<double> flattrans, std::vector<double> uniqs) {
-  std::vector<unsigned int> ans;
-  for (unsigned int i = 0; i < uniqs.size(); i++) {
+  unsigned int siz = uniqs.size();
+  std::vector<unsigned int> ans(siz);
+  // ans.reserve(siz);
+  for (unsigned int i = 0; i < siz; i++) {
     unsigned int thisfreq = 0;
-    for (unsigned int j = 0; j < flattrans.size(); j++) {
+    unsigned int flattransiz = flattrans.size();
+    for (unsigned int j = 0; j < flattransiz; j++) {
       if (uniqs[i] == flattrans[j]) {
         thisfreq++;
       }
     }
-    ans.push_back(thisfreq);
+    // ans.push_back(thisfreq);
+    ans.at(i) = thisfreq;
   }
   return ans;
 }
@@ -73,31 +77,22 @@ void Mine(const FunctionCallbackInfo<Value>& args) {
   unsigned int len = input->Length();
 
   // convert the js-array to cpp-vector
-  std::vector<double> uniqs;
-  // for (unsigned int i = 0; i < uniqsarr->Length(); i++) {
-  //   double thisItem = uniqsarr->Get(i)->NumberValue();
-  //   uniqs.push_back(thisItem);
-  // }
-
-  std::vector<double> associatedItems;
-  for (unsigned int i = 0; i < associatedarr->Length(); i++) {
-    if (i < uniqsarr->Length()) {
+  unsigned int uniqsLen = uniqsarr->Length();
+  std::vector<double> uniqs(uniqsLen);
+  // uniqs.reserve(uniqsLen);
+  unsigned int associatedItemsLen = associatedarr->Length();
+  std::vector<double> associatedItems(associatedItemsLen);
+  // associatedItems.reserve(associatedItemsLen);
+  for (unsigned int i = 0; i < associatedItemsLen; i++) {
+    if (i < uniqsLen) {
       double thisItem = uniqsarr->Get(i)->NumberValue();
-      uniqs.push_back(thisItem);
+      // uniqs.push_back(thisItem);
+      uniqs.at(i) = thisItem;
     }
     double thisItem = associatedarr->Get(i)->NumberValue();
-    associatedItems.push_back(thisItem);
+    // associatedItems.push_back(thisItem);
+    associatedItems.at(i) = thisItem;
   }
-
-  // // create flat vector of associatied items
-  // for (unsigned int i = 0; i < len; i++) {
-  //   Local<Array> thisTran = Local<Array>::Cast(input->Get(i));
-  //   unsigned int thisLen = thisTran->Length();
-  //   for (unsigned int j = 0; j < thisLen; j++) {
-  //     double thisItem = thisTran->Get(j)->NumberValue();
-  //     associatedItems.push_back(thisItem);
-  //   }
-  // }
 
   // count the frequencies
   std::time_t result = std::time(nullptr);
@@ -171,7 +166,6 @@ void getConsequents(const FunctionCallbackInfo<Value>& args) {
   }
 
   Local<Array> input = Local<Array>::Cast(args[0]);
-  double antecedent = args[1]->NumberValue();
   unsigned int len = input->Length();
   std::vector<double> associatedItems;
 

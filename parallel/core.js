@@ -9,7 +9,6 @@ const cluster = require('cluster');
 const numCPUs = require('os').cpus().length - 1;
 const mine = require('..');
 const fs = require('fs');
-const combineAssociations = require('./combine');
 
 // start a nodejs cluster
 function startCluster(options) {
@@ -41,9 +40,6 @@ function startCluster(options) {
           // finans = _.concat(finans, require(path.join('..', fil)));
           finans.push(require(path.join('..', fil)));
         }
-
-        // // here is room for optimization
-        // finans = combineAssociations(finans);
 
         const assocFile = `assoc_${REQTIME}.json`;
         fs.writeFileSync(assocFile, JSON.stringify(finans), 'UTF-8');
