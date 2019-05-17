@@ -10,12 +10,16 @@ const path = require('path');
 //   antecedent: Number,
 //   parallel?: Boolean,
 //   nCores?: Number
-//   callback: Function
+//   callback: Function,
+//   attachMeasures?: Boolean,
+//   sortingMeasure?: String
 // }
 function wrapDefaultOptions(options = {}) {
   const defaults = {
     parallel: false,
-    nCores: 1
+    nCores: 1,
+    attachMeasures: false,
+    sortingMeasure: 'confidence'
   };
   for (let opt in defaults) {
     if (typeof options[opt] === 'undefined') {

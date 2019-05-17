@@ -16,7 +16,8 @@ function test(cb) {
     antecedent: 3,
     parallel: true,
     nCores: 2,
-    // sortingMeasure: 'lift',
+    sortingMeasure: 'improvedLift',
+    attachMeasures: true,
     callback: assocs => {
       console.log(assocs);
       cb(assocs.length);
@@ -24,7 +25,8 @@ function test(cb) {
   });
 }
 
+const t1 = Date.now();
 test(len => {
   assert.equal(len, 4);
-  console.log('All tests passed');
+  console.log('All tests passed in: ', Date.now() - t1, '(ms)');
 });
