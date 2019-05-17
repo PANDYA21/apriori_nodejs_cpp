@@ -24,4 +24,5 @@ function test(cb) {
 
 test(len => {
   assert.equal(len, 4);
+  console.log('All tests passed');
 });
