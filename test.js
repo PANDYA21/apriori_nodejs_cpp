@@ -1,5 +1,5 @@
-const mine = require('.');
 const assert = require('assert');
+const mine = require('.');
 
 function test() {
   const assocs = mine([
