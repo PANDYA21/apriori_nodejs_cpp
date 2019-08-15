@@ -20,6 +20,7 @@ The following benchmark was performed on Ubuntu 16.04 with Node 10.13.0.
 <!-- ![image info](./benchmark/plt_trans.png) -->
 
 # Usage
+Currently this package supports only numeric itemset as an array of transactions, where each transaction is an individual array. 
 ```js
 const mine = require('apriorijscpp');
 const assocs = mine([
@@ -44,6 +45,7 @@ console.log(assocs);
 - Compatibility for newer versions of node.js (newer N-API, breaking changes)
 - Parallelization with child process handling
 - Add contribution guide
+- Add support for string based itemset
 
 # Contribution
 
