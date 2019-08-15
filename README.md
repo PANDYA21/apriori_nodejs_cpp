@@ -27,7 +27,7 @@ Function (Transaction, Options)
 Transaction: Number[][]
 Options: {
   antecedent: Number,
-  sortingMeasure: String,
+  sortingMeasure: String, // default: 'confidence'
   attachMeasures: Boolean // default false
 }
 ```
