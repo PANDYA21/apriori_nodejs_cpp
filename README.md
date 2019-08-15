@@ -20,7 +20,37 @@ The following benchmark was performed on Ubuntu 16.04 with Node 10.13.0.
 <!-- ![image info](./benchmark/plt_trans.png) -->
 
 # Usage
-Currently this package supports only numeric itemset as an array of transactions, where each transaction is an individual array. 
+## `mine` API
+### Syntax
+```js
+Function (Transaction, Options)
+Transaction: Number[][]
+Options: {
+  antecedent: Number,
+  sortingMeasure: String,
+  attachMeasures: Boolean // default false
+}
+```
+
+### Sorting measures
+Supply one of the following values as `String` for `sortingMeasure` parameter in `Options`. If `attachMeasures` is set to `true`, all the following measures are calculated and returned in response, and sorting of associations is done with the `sortingMeasure`.
+- `confidence`
+- `lift`
+- `improvedLift`
+- `kulc`
+- `imbalanceRatio`
+- `biConfidence`
+- `biImprove`
+- `jaccard`
+- `conviction`
+- `sebagSchoenauer`
+- `certaintyFactor`
+- `lift`
+- `improve`
+
+Note that, currently this package supports only numeric itemset as an array of transactions, where each transaction is an individual array. 
+
+### Example Usage
 ```js
 const mine = require('apriorijscpp');
 const assocs = mine([
