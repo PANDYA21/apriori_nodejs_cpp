@@ -13,11 +13,10 @@
 ## Benchmark
 The following benchmark was performed on Ubuntu 16.04 with Node 10.13.0.
 ### Transactions Growth
-<img src="./benchmark/plt_trans.png">
+<img src="https://github.com/PANDYA21/apriori_nodejs_cpp/blob/master/benchmark/plt_trans.png">
 
 ### Itemset Growth
-<img src="./benchmark/plt_items.png">
-<!-- ![image info](./benchmark/plt_trans.png) -->
+<img src="https://github.com/PANDYA21/apriori_nodejs_cpp/blob/master/benchmark/plt_items.png">
 
 # Usage
 ## `mine` API
@@ -70,6 +69,10 @@ const assocs = mine([
 
 console.log(assocs);
 ```
+
+# Source
+https://github.com/PANDYA21/apriori_nodejs_cpp
+
 
 # ToDo
 - Compatibility for newer versions of node.js (newer N-API, breaking changes)
